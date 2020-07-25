@@ -2523,6 +2523,7 @@ public OnEntityCreated(entity, const String:classname[])
 			AcceptEntityInput(entity, "Kill");
 		}
 	}
+	NapalmOnEntityCreated(entity, classname);
 }
 public Action:timer1345(Handle:timer, any:entity)
 {

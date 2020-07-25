@@ -34,6 +34,64 @@
 #include <zombiereloaded>
 #undef INCLUDED_BY_ZOMBIERELOADED
 
+new bool:rondasurvivor = false;
+new bool:rondanemesis = false;
+new bool:rondaplague = false;
+
+new nade_infect[MAXPLAYERS+1] = 0;
+
+new g_beamsprite, g_halosprite;
+
+
+
+new nade_count[MAXPLAYERS+1] = 0;
+
+#define NADE_COLOR2	{255,255,255,255}
+
+
+#define PLUGIN_VERSION "2.0"
+
+#define FLASH 0
+#define SMOKE 1
+
+#define SOUND_FREEZE	"physics/glass/glass_impact_bullet4.wav"
+#define SOUND_FREEZE_EXPLODE	"ui/freeze_cam.wav"
+
+#define FragColor 	{255,75,75,255}
+#define FlashColor 	{255,255,255,255}
+#define SmokeColor	{75,255,75,255}
+#define FreezeColor	{75,75,255,255}
+
+new Float:NULL_VELOCITY[3] = {0.0, 0.0, 0.0};
+
+new Nemesis = 0;
+
+new bool:bIsGoldenGun[2048] = false;
+
+
+new Handle:h_greneffects_enable, bool:b_enable,
+	Handle:h_greneffects_trails, bool:b_trails,
+	Handle:h_greneffects_napalm_he, bool:b_napalm_he,
+	Handle:h_greneffects_napalm_he_duration, Float:f_napalm_he_duration,
+	Handle:h_greneffects_smoke_freeze, bool:b_smoke_freeze,
+	Handle:h_greneffects_smoke_freeze_distance, Float:f_smoke_freeze_distance,
+	Handle:h_greneffects_smoke_freeze_duration, Float:f_smoke_freeze_duration,
+	Handle:h_greneffects_flash_light, bool:b_flash_light,
+	Handle:h_greneffects_flash_light_distance, Float:f_flash_light_distance,
+	Handle:h_greneffects_flash_light_duration, Float:f_flash_light_duration;
+
+new Handle:h_freeze_timer[MAXPLAYERS+1];
+
+new Handle:h_fwdOnClientFreeze,
+	Handle:h_fwdOnClientFreezed,
+	Handle:h_fwdOnClientIgnite,
+	Handle:h_fwdOnClientIgnited;
+
+new GlowSprite;
+
+new bool:Es_Nemesis[MAXPLAYERS+1] = {false, ...};
+
+
 #include <sdkhooks>
 
 #define VERSION "3.1"
@@ -45,6 +103,7 @@
 // Header includes.
 #include "zr/log.h"
 #include "zr/models.h"
+#include "franug_z/fuego.sp"
 #include "zr/immunityhandler.h"
 
 #if defined ADD_VERSION_INFO
@@ -106,6 +165,10 @@
 
 #include "zr/api/api"
 
+#include "franug_z/bomb.sp"
+#include "franug_z/sm_franug-ZombiePlague.sp"
+#include "franug_z/granadas.sp"
+
 new bool:g_bLate = false;
 new bool:g_bServerStarted = false;
 
@@ -134,6 +197,12 @@ public Plugin:myinfo =
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
     // Load API.
+    h_fwdOnClientFreeze = CreateGlobalForward("ZR_OnClientFreeze", ET_Hook, Param_Cell, Param_Cell, Param_FloatByRef);
+	h_fwdOnClientFreezed = CreateGlobalForward("ZR_OnClientFreezed", ET_Ignore, Param_Cell, Param_Cell, Param_Float);
+	
+	h_fwdOnClientIgnite = CreateGlobalForward("ZR_OnClientIgnite", ET_Hook, Param_Cell, Param_Cell, Param_FloatByRef);
+	h_fwdOnClientIgnited = CreateGlobalForward("ZR_OnClientIgnited", ET_Ignore, Param_Cell, Param_Cell, Param_Float);
+
     APIInit();
 
     // Register library
@@ -160,6 +229,7 @@ public OnPluginStart()
     CommandsInit();
     WeaponsInit();
     EventInit();
+    OnPluginStartZM();
 }
 
 /**
@@ -207,6 +277,10 @@ public OnMapStart()
     SEffectsOnMapStart();
     ZSpawnOnMapStart();
     VolInit();
+    OnMapStartZM();
+
+    g_beamsprite = PrecacheModel("materials/sprites/lgtning.vmt");
+    g_halosprite = PrecacheModel("materials/sprites/halo01.vmt");
 }
 
 /**
@@ -220,6 +294,9 @@ public OnMapEnd()
     VEffectsOnMapEnd();
     ZombieSoundsOnMapEnd();
     ImmunityOnMapEnd();
+
+    rondanemesis = false;
+    rondasurvivor = false;
 }
 
 /**
@@ -323,6 +400,7 @@ public OnClientPutInServer(client)
     ZTele_OnClientPutInServer(client);
     ZHPClientInit(client);
     ImmunityClientInit(client);
+    OnClientPutInServerD(client);
 }
 
 /**
@@ -358,6 +436,7 @@ public OnClientPostAdminCheck(client)
 {
     // Forward authorized event to modules that depend on client admin info.
     ClassOnClientPostAdminCheck(client);
+    OnClientPostAdminCheckZM(client);
 }
 
 /**
@@ -377,6 +456,8 @@ public OnClientDisconnect(client)
     VolOnPlayerDisconnect(client);
     ImmunityOnClientDisconnect(client);
     ZTele_OnClientDisconnect(client);
+    OnClientDisconnectZM(client);
+    OnClientDisconnect2(client);
 }
 
 /**
@@ -394,17 +475,6 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
 {
     Class_OnPlayerRunCmd(client, vel);
     return Plugin_Continue;
-}
-
-/**
- * When an entity is created
- *
- * @param       entity      Entity index
- * @param       classname   Class name
- */
-public OnEntityCreated(entity, const String:classname[])
-{
-    NapalmOnEntityCreated(entity, classname);
 }
 
 /**
