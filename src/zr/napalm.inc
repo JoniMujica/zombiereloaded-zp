@@ -172,6 +172,56 @@ NapalmOnClientDeath(client)
     NapalmExtinguishEntity(client);
 }
 
+NapalmOnWeaponFire(client, const String:weapon[])
+{
+    // If grenade fire is disabled, then stop.
+    new bool:napalmignite = GetConVarBool(g_hCvarsList[CVAR_NAPALM_IGNITE]);
+    if (!napalmignite)
+    {
+        return;
+    }
+
+    // If human class can't throw napalm grenades, then stop.
+    if (!ClassGetHasNapalm(client))
+    {
+        return;
+    }
+
+    // If weapon isn't a grenade, then stop.
+    if (!StrEqual(weapon, "hegrenade", false))
+    {
+        return;
+    }
+
+    // Wait .1 seconds.
+    CreateTimer(0.1, NapalmIgniteGrenade);
+}
+
+
+
+public Action:NapalmIgniteGrenade(Handle:timer)
+{
+    decl String:classname[64];
+
+    // Get max entities.
+    new maxentities = GetMaxEntities();
+
+    // x = entity index.
+    for (new x = 0; x <= maxentities; x++)
+    {
+        // If entity is invalid, then stop.
+        if(!IsValidEntity(x) || !IsValidEdict(x))
+        {
+            continue;
+        }
+
+        GetEdictClassname(x, classname, sizeof(classname));
+        if(StrEqual(classname, "hegrenade_projectile"))
+        {
+            IgniteEntity(x, GRENADE_FUSE_TIME);
+        }
+    }
+}
 /**
  * When an entity is created.
  *

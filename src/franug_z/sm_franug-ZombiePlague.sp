@@ -160,7 +160,7 @@ public OnPluginStartZM()
 	g_iJumpMax = GetConVarInt(g_cvJumpMax);	
 	RegConsoleCmd("say", Command_Say);
 	RegConsoleCmd("say_team", Command_Say);
-	CreateConVar("sm_ZombiePlague", VERSION2, "plugin info", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
+	CreateConVar("sm_ZombiePlague", VERSION2, "plugin info", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	
 	//CreateConVar("www.servers-cfg.foroactivo.com", "Pagina de configuraciones y plugins en Castellano", "version del plugin", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 	// Hooks event changes
@@ -1665,7 +1665,7 @@ Ronda_Plague()
 			{
 				SetEntityHealth(i, vida_total);
 				CS_SwitchTeam(i, CS_TEAM_CT);
-				bZombie[i] = false;
+				g_bZombie[i] = false;
 				g_AmmoInfi[i] = true;
 				new wepIdx;
 				// strip all weapons
@@ -1695,12 +1695,12 @@ Ronda_Plague()
 	// Mother zombies have been infected.    
 	g_bZombieSpawned = true;
 	// If infect timer is running, then kill it.    
-	if (tInfect != INVALID_HANDLE)    
+	if (g_tInfect != INVALID_HANDLE)    
 	{
 		// Kill timer.
-		KillTimer(tInfect);         
+		KillTimer(g_tInfect);         
 		// Reset timer handle.       
-		tInfect = INVALID_HANDLE;    
+		g_tInfect = INVALID_HANDLE;    
 	}
 	rondaplague = true;
 	ServerCommand("zr_respawn 0");
@@ -1735,7 +1735,7 @@ public Action:Ronda_PlagueA(client, args)
 			{
 				SetEntityHealth(i, vida_total);
 				CS_SwitchTeam(i, CS_TEAM_CT);
-				bZombie[i] = false;
+				g_bZombie[i] = false;
 				g_AmmoInfi[i] = true;
 				new wepIdx;
 				// strip all weapons
@@ -1765,12 +1765,12 @@ public Action:Ronda_PlagueA(client, args)
 	// Mother zombies have been infected.    
 	g_bZombieSpawned = true;
 	// If infect timer is running, then kill it.    
-	if (tInfect != INVALID_HANDLE)    
+	if (g_tInfect != INVALID_HANDLE)    
 	{
 		// Kill timer.
-		KillTimer(tInfect);         
+		KillTimer(g_tInfect);         
 		// Reset timer handle.       
-		tInfect = INVALID_HANDLE;    
+		g_tInfect = INVALID_HANDLE;    
 	}
 	rondaplague = true;
 	ServerCommand("zr_respawn 0");
@@ -1795,7 +1795,7 @@ Ronda_Survivor()
 	new vida_survivor = jugadores * 100;
 	SetEntityHealth(Survivor, vida_survivor);
 	CS_SwitchTeam(Survivor, CS_TEAM_CT);
-	bZombie[Survivor] = false;
+	g_bZombie[Survivor] = false;
 	g_AmmoInfi[Survivor] = true;
 	new wepIdx;
 	// strip all weapons
@@ -1849,12 +1849,12 @@ Ronda_Survivor()
 	// Mother zombies have been infected.    
 	g_bZombieSpawned = true;
 	// If infect timer is running, then kill it.    
-	if (tInfect != INVALID_HANDLE)    
+	if (g_tInfect != INVALID_HANDLE)    
 	{
 		// Kill timer.
-		KillTimer(tInfect);         
+		KillTimer(g_tInfect);         
 		// Reset timer handle.       
-		tInfect = INVALID_HANDLE;    
+		g_tInfect = INVALID_HANDLE;    
 	}
 	SetEntityModel(Survivor, "models/player/slow/amberlyn/re5/majini_minigun/slow.mdl");
 	
@@ -1911,17 +1911,17 @@ Ronda_Nemesis()
 		
 		// Switch client to CT team.
 		CS_SwitchTeam(x, CS_TEAM_CT);
-		bZombie[x] = false;
+		g_bZombie[x] = false;
 	} 
 	// Mother zombies have been infected.    
 	g_bZombieSpawned = true;
 	// If infect timer is running, then kill it.    
-	if (tInfect != INVALID_HANDLE)    
+	if (g_tInfect != INVALID_HANDLE)    
 	{
 		// Kill timer.
-		KillTimer(tInfect);         
+		KillTimer(g_tInfect);         
 		// Reset timer handle.       
-		tInfect = INVALID_HANDLE;    
+		g_tInfect = INVALID_HANDLE;    
 	}
 	SetEntityModel(Nemesis, "models/player/pil/re_chronicles/nemesis_larger/nemesis_pil.mdl");
 	Es_Nemesis[Nemesis] = true;
@@ -1991,17 +1991,17 @@ public Action:NemesisA(client, args)
 		
 		// Switch client to CT team.
 		CS_SwitchTeam(x, CS_TEAM_CT);
-		bZombie[x] = false;
+		g_bZombie[x] = false;
 	} 
 	// Mother zombies have been infected.    
 	g_bZombieSpawned = true;
 	// If infect timer is running, then kill it.    
-	if (tInfect != INVALID_HANDLE)    
+	if (g_tInfect != INVALID_HANDLE)    
 	{
 		// Kill timer.
-		KillTimer(tInfect);         
+		KillTimer(g_tInfect);         
 		// Reset timer handle.       
-		tInfect = INVALID_HANDLE;    
+		g_tInfect = INVALID_HANDLE;    
 	}
 	rondanemesis = true;
 	SetEntityModel(Nemesis, "models/player/pil/re_chronicles/nemesis_larger/nemesis_pil.mdl");
@@ -2042,7 +2042,7 @@ public Action:SurvivorA(client, args)
 	new vida_survivor = jugadores * 100;
 	SetEntityHealth(Survivor, vida_survivor);
 	CS_SwitchTeam(Survivor, CS_TEAM_CT);
-	bZombie[Survivor] = false;
+	g_bZombie[Survivor] = false;
 	g_AmmoInfi[Survivor] = true;
 	new wepIdx;
 	// strip all weapons
@@ -2097,12 +2097,12 @@ public Action:SurvivorA(client, args)
 	// Mother zombies have been infected.    
 	g_bZombieSpawned = true;
 	// If infect timer is running, then kill it.    
-	if (tInfect != INVALID_HANDLE)    
+	if (g_tInfect != INVALID_HANDLE)    
 	{
 		// Kill timer.
-		KillTimer(tInfect);         
+		KillTimer(g_tInfect);         
 		// Reset timer handle.       
-		tInfect = INVALID_HANDLE;    
+		g_tInfect = INVALID_HANDLE;    
 	}
 	rondasurvivor = true;
 	SetEntityModel(Survivor, "models/player/slow/amberlyn/re5/majini_minigun/slow.mdl");
