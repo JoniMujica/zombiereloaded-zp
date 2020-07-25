@@ -606,6 +606,11 @@ public Action:RestrictCanUse(client, weapon)
         return Plugin_Continue;
     }
 
+    if (StrEqual(weaponentity, "weapon_hegrenade") && InfectIsClientInfected(client) && nade_infect[client] > 0)
+    {
+        return Plugin_Continue;
+    }
+
     // If the player is a zombie, then prevent pickup.
     if (InfectIsClientInfected(client))
     {
