@@ -53,6 +53,7 @@ EventHook(bool:unhook = false)
         UnhookEvent("player_hurt", EventPlayerHurt);
         UnhookEvent("player_death", EventPlayerDeath);
         UnhookEvent("player_jump", EventPlayerJump);
+        UnhookEvent("weapon_fire", EventWeaponFire);
 
         // Stop after unhooking events.
         return;
@@ -67,6 +68,7 @@ EventHook(bool:unhook = false)
     HookEvent("player_hurt", EventPlayerHurt);
     HookEvent("player_death", EventPlayerDeath);
     HookEvent("player_jump", EventPlayerJump);
+    HookEvent("weapon_fire", EventWeaponFire);
 }
 
 /**
@@ -88,6 +90,10 @@ public Action:EventRoundStart(Handle:event, const String:name[], bool:dontBroadc
     ZSpawnOnRoundStart();
     VolOnRoundStart();
     ZTeleOnRoundStart();
+    Event_RoundStartZM();
+
+    rondanemesis = false;
+    rondasurvivor = false;
 }
 
 /**
@@ -128,6 +134,8 @@ public Action:EventRoundEnd(Handle:event, const String:name[], bool:dontBroadcas
     ZSpawnOnRoundEnd();
     VolOnRoundEnd();
     ImmunityOnRoundEnd();
+    rondanemesis = false;
+    rondasurvivor = false;
 }
 
 /**
@@ -176,6 +184,7 @@ public Action:EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroad
     ZHPOnClientSpawn(index);
     VolOnPlayerSpawn(index);
     ImmunityClientSpawn(index);
+    PlayerSpawnZM(index);
 
     // Fire post player_spawn event.
     CreateTimer(0.1, EventPlayerSpawnPost, index);
@@ -231,6 +240,8 @@ public Action:EventPlayerHurt(Handle:event, const String:name[], bool:dontBroadc
     KnockbackOnClientHurt(index, attacker, weapon, hitgroup, dmg_health);
     NapalmOnClientHurt(index, attacker, weapon, dmg_health);
     ZHPOnClientHurt(index);
+    Event_hurtZM(attacker);
+    Event_hurtZMGranadas(index, attacker, weapon);
 }
 
 /**
@@ -264,6 +275,7 @@ public Action:EventPlayerDeath(Handle:event, const String:name[], bool:dontBroad
         // other mods might sent this event with bad data.
         return;
     }
+    PlayerDeathZM(attacker, index);
 
     // Forward event to modules.
     ClassOnClientDeath(index);
@@ -296,6 +308,7 @@ public Action:EventPlayerJump(Handle:event, const String:name[], bool:dontBroadc
 
     // Fire post player_jump event.
     CreateTimer(0.0, EventPlayerJumpPost, index);
+    PlayerJumpZM(index);
 }
 
 /**
@@ -316,4 +329,18 @@ public Action:EventPlayerJumpPost(Handle:timer, any:client)
 
     // Forward event to modules.
     JumpBoostOnClientJumpPost(client);
+}
+
+public Action:EventWeaponFire(Handle:event, const String:name[], bool:dontBroadcast)
+{
+    // Get all required event info.
+    new index = GetClientOfUserId(GetEventInt(event, "userid"));
+    decl String:weapon[32];
+    GetEventString(event, "weapon", weapon, sizeof(weapon));
+
+
+    // Forward event to modules.
+    NapalmOnWeaponFire(index, weapon);
+    DisparosZM(index, weapon);
+    //DisparosZM2(index, weapon);
 }
