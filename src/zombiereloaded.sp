@@ -34,6 +34,8 @@
 #include <zombiereloaded>
 #undef INCLUDED_BY_ZOMBIERELOADED
 
+#include <emitsoundany>
+
 new bool:rondasurvivor = false;
 new bool:rondanemesis = false;
 new bool:rondaplague = false;
@@ -277,6 +279,7 @@ public OnMapStart()
     SEffectsOnMapStart();
     ZSpawnOnMapStart();
     VolInit();
+    CountDown();
     OnMapStartZM();
 
     g_beamsprite = PrecacheModel("materials/sprites/lgtning.vmt");
